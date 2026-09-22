@@ -1,3 +1,8 @@
 """URL configuration for the weather API."""
 
-urlpatterns = []
+from django.urls import include, path
+
+
+urlpatterns = [
+    path("api/v1/", include("weather.urls")),
+]

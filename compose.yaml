@@ -17,7 +17,9 @@ services:
         - CMD
         - python
         - -c
-        - import socket; socket.create_connection(('127.0.0.1', 8000), timeout=2).close()
+        - >-
+          import urllib.request as u;
+          u.urlopen('http://127.0.0.1:8000/health/', timeout=2).close()
       interval: 10s
       timeout: 3s
       retries: 5

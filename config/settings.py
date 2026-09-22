@@ -67,6 +67,12 @@ DATABASES = {
     }
 }
 
+OPENWEATHER_API_KEY = env("OPENWEATHER_API_KEY", default="")
+OPENWEATHER_TIMEOUT_SECONDS = env.float(
+    "OPENWEATHER_TIMEOUT_SECONDS",
+    default=5.0,
+)
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         "NAME": (

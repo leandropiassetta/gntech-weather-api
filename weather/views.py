@@ -30,7 +30,6 @@ from weather.services.exceptions import (
     OpenWeatherUnavailableError,
 )
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -227,4 +226,3 @@ class HealthCheckView(APIView):
             )
 
         return Response({"status": "ok", "database": "ok"})
-

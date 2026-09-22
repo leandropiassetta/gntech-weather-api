@@ -7,13 +7,10 @@ class CountryCodeValidationMixin:
     def validate_country_code(self, value):
         normalized_country_code = value.upper()
         is_valid_country_code = (
-            normalized_country_code.isascii()
-            and normalized_country_code.isalpha()
+            normalized_country_code.isascii() and normalized_country_code.isalpha()
         )
         if not is_valid_country_code:
-            raise serializers.ValidationError(
-                "Enter a valid two-letter country code."
-            )
+            raise serializers.ValidationError("Enter a valid two-letter country code.")
         return normalized_country_code
 
 

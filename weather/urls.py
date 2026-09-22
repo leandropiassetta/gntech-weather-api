@@ -5,7 +5,6 @@ from weather.views import (
     WeatherReadingDetailView,
 )
 
-
 app_name = "weather"
 
 urlpatterns = [

@@ -5,7 +5,6 @@ from decimal import Decimal
 from django.core.validators import MaxValueValidator, MinValueValidator, RegexValidator
 from django.db import models
 
-
 country_code_validator = RegexValidator(
     regex=r"^[A-Z]{2}$",
     message="Enter a valid two-letter uppercase country code.",

@@ -36,4 +36,3 @@ class OpenWeatherTimeoutError(OpenWeatherUnavailableError):
 
 class OpenWeatherResponseError(OpenWeatherProviderError):
     """Raised when OpenWeather returns an invalid or unexpected response."""
-

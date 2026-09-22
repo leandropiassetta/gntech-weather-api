@@ -11,8 +11,7 @@ RUN addgroup --system django \
     && adduser --system --ingroup django --home /home/django django
 
 COPY requirements.txt ./
-RUN python -m pip install --upgrade pip \
-    && python -m pip install -r requirements.txt
+RUN python -m pip install -r requirements.txt
 
 COPY --chown=django:django . .
 RUN chmod +x /app/docker/entrypoint.sh

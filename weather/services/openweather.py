@@ -43,9 +43,7 @@ class OpenWeatherClient:
     CURRENT_WEATHER_URL = "https://api.openweathermap.org/data/2.5/weather"
 
     def __init__(self, api_key=None, session=None, timeout=None):
-        resolved_api_key = (
-            settings.OPENWEATHER_API_KEY if api_key is None else api_key
-        )
+        resolved_api_key = settings.OPENWEATHER_API_KEY if api_key is None else api_key
         if not resolved_api_key or not resolved_api_key.strip():
             raise OpenWeatherConfigurationError(
                 "OPENWEATHER_API_KEY is not configured."
@@ -186,13 +184,9 @@ class OpenWeatherClient:
                 timeout=self.timeout,
             )
         except requests.Timeout as exc:
-            raise OpenWeatherTimeoutError(
-                "OpenWeather request timed out."
-            ) from exc
+            raise OpenWeatherTimeoutError("OpenWeather request timed out.") from exc
         except requests.RequestException as exc:
-            raise OpenWeatherUnavailableError(
-                "OpenWeather is unavailable."
-            ) from exc
+            raise OpenWeatherUnavailableError("OpenWeather is unavailable.") from exc
 
         if response.status_code in {401, 403}:
             raise OpenWeatherAuthenticationError(
@@ -203,9 +197,7 @@ class OpenWeatherClient:
                 retry_after=response.headers.get("Retry-After")
             )
         if response.status_code >= 500:
-            raise OpenWeatherUnavailableError(
-                "OpenWeather is unavailable."
-            )
+            raise OpenWeatherUnavailableError("OpenWeather is unavailable.")
         if not 200 <= response.status_code < 300:
             raise OpenWeatherResponseError(
                 f"OpenWeather returned status code {response.status_code}."
@@ -231,4 +223,3 @@ class OpenWeatherClient:
         if not isinstance(value, str) or not value.strip():
             raise ValueError
         return value
-

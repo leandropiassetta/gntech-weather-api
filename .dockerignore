@@ -1,6 +1,7 @@
 .env
 .git
 .gitignore
+.github
 .venv
 
 __pycache__
@@ -14,3 +15,7 @@ htmlcov
 .idea
 .vscode
 
+.python-version
+pyproject.toml
+requirements-dev.txt
+weather/tests

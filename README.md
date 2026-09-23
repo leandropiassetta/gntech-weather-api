@@ -54,6 +54,8 @@ Não é necessário instalar Python ou PostgreSQL no computador quando o projeto
 
 ## Execução com Docker
 
+### 1. Preparar o projeto
+
 Clone o repositório e entre no diretório:
 
 ```bash
@@ -67,12 +69,38 @@ Crie o arquivo local de configuração:
 cp .env.example .env
 ```
 
-Edite o `.env` e substitua, no mínimo:
+### 2. Obter uma chave do OpenWeather
+
+O endpoint de coleta consulta as APIs de Geocoding e Current Weather. Por isso,
+o servidor precisa de uma chave pessoal do OpenWeather. Quem consome esta API
+não precisa conhecer ou enviar essa chave.
+
+1. [Crie uma conta no OpenWeather](https://home.openweathermap.org/users/sign_up)
+   ou entre em uma conta existente.
+2. Confirme o endereço de e-mail usado no cadastro.
+3. Abra a aba [API keys](https://home.openweathermap.org/api_keys) da conta.
+4. Use a chave `Default` ou informe um nome e selecione **Generate** para criar
+   outra chave.
+5. Copie o valor da coluna **Key**. A coluna **Name** é somente um rótulo e não
+   deve ser colocada no `.env`.
+6. Aguarde a ativação. Uma chave nova pode levar até duas horas para funcionar,
+   mesmo quando já aparece como `Active` no painel.
+
+O acesso gratuito contempla os dois serviços usados pelo projeto. Consulte as
+[instruções oficiais sobre APPID](https://openweathermap.org/appid) para mais
+detalhes.
+
+### 3. Configurar o `.env`
+
+Edite o `.env` localizado na raiz do projeto e substitua, no mínimo:
 
 ```dotenv
 DJANGO_SECRET_KEY=uma-chave-local-longa-e-aleatoria
-OPENWEATHER_API_KEY=sua-chave-do-openweather
+OPENWEATHER_API_KEY=cole-aqui-o-valor-da-coluna-key
 ```
+
+Não adicione `appid=`, não use o nome atribuído à chave e não inclua espaços ao
+redor do valor. O `.env` é ignorado pelo Git e nunca deve ser versionado.
 
 Uma chave para o Django pode ser gerada com:
 
@@ -80,10 +108,33 @@ Uma chave para o Django pode ser gerada com:
 python3 -c 'import secrets; print(secrets.token_urlsafe(50))'
 ```
 
+### 4. Validar a chave do OpenWeather
+
+Este teste é opcional, mas ajuda a identificar problemas de ativação antes de
+iniciar a aplicação. Execute-o na raiz do projeto:
+
+```bash
+set -a
+source .env
+set +a
+
+curl --get 'https://api.openweathermap.org/geo/1.0/direct' \
+  --data-urlencode 'q=Florianópolis,BR' \
+  --data-urlencode 'limit=1' \
+  --data-urlencode "appid=${OPENWEATHER_API_KEY}"
+```
+
+Uma chave funcional retorna uma lista contendo Florianópolis, suas coordenadas
+e o código `BR`. Uma resposta `401` indica que a chave está incorreta, ainda não
+foi ativada ou a conta ainda não teve o e-mail confirmado. Confira o valor na
+aba **API keys** e, para chaves novas, aguarde até duas horas.
+
+### 5. Iniciar a aplicação
+
 Inicie a API e o PostgreSQL:
 
 ```bash
-docker compose up --build
+docker compose up --build -d
 ```
 
 As migrations são aplicadas automaticamente. Quando os healthchecks estiverem
@@ -96,11 +147,48 @@ saudáveis, os serviços estarão disponíveis em:
 | API | <http://localhost:8000/api/v1/weather-readings/> |
 | Healthcheck | <http://localhost:8000/health/> |
 
+Confira o estado dos containers com:
+
+```bash
+docker compose ps
+```
+
+Se a chave for alterada depois que a aplicação já estiver em execução, recrie
+o container da API para carregar o novo valor:
+
+```bash
+docker compose up -d --force-recreate api
+```
+
+Usar apenas `docker compose restart` não recarrega as variáveis do `.env`.
+
 Se a porta 8000 já estiver ocupada, altere `API_PORT` no `.env`, por exemplo:
 
 ```dotenv
 API_PORT=8001
 ```
+
+Nesse caso, use `http://localhost:8001` nos endereços e exemplos desta
+documentação.
+
+### 6. Fazer a primeira coleta pelo Swagger
+
+1. Abra <http://localhost:8000/api/docs/>.
+2. Expanda `POST /api/v1/weather-readings/`.
+3. Selecione **Try it out**.
+4. Informe o corpo abaixo e selecione **Execute**:
+
+```json
+{
+  "city": "Florianópolis",
+  "country_code": "BR"
+}
+```
+
+Uma coleta bem-sucedida retorna `201 Created` e salva a observação no
+PostgreSQL. A chave do OpenWeather não deve ser enviada no corpo, nos headers ou
+no Swagger; o servidor a lê do `.env` e acrescenta o parâmetro `appid` às
+chamadas externas.
 
 Para encerrar os containers sem apagar os dados:
 
@@ -229,6 +317,15 @@ curl http://localhost:8000/api/v1/weather-readings/1/
 | `404` | Localização, leitura ou página não encontrada |
 | `502` | Timeout, indisponibilidade ou resposta inválida do OpenWeather |
 | `503` | Chave ausente/inválida ou limite do OpenWeather atingido |
+
+Erros comuns durante a configuração da chave:
+
+| Código da resposta | Causa provável | Como resolver |
+| --- | --- | --- |
+| `weather_provider_not_configured` | `OPENWEATHER_API_KEY` ausente ou vazia | Preencha a variável no `.env` e recrie o container da API |
+| `weather_provider_authentication_failed` | Chave incorreta ou ainda não ativada | Teste a chave diretamente, confirme o e-mail e aguarde a ativação |
+| `weather_provider_rate_limited` | Limite de requisições atingido | Aguarde o período indicado pelo header `Retry-After` |
+| `weather_provider_invalid_response` | Resposta inesperada do provedor | Consulte os logs e tente novamente |
 
 Falhas da integração utilizam um corpo estável e não expõem chave, traceback ou
 resposta interna do provedor:

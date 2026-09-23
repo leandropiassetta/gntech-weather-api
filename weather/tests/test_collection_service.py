@@ -70,6 +70,22 @@ class CollectWeatherReadingTests(TestCase):
 
         self.assertFalse(WeatherReading.objects.exists())
 
+    def test_rounds_provider_coordinates_to_model_precision(self):
+        self.client.geocode.return_value = replace(
+            self.location,
+            latitude=Decimal("-27.5973002"),
+            longitude=Decimal("-48.5496098"),
+        )
+
+        reading = collect_weather_reading(
+            "Florianópolis",
+            "BR",
+            client=self.client,
+        )
+
+        self.assertEqual(reading.latitude, Decimal("-27.597300"))
+        self.assertEqual(reading.longitude, Decimal("-48.549610"))
+
     def test_rejects_provider_data_outside_model_limits(self):
         self.client.get_current_weather.return_value = replace(
             self.current_weather,

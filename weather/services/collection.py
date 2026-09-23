@@ -1,9 +1,13 @@
+from decimal import Decimal
+
 from django.core.exceptions import ValidationError
 from django.db import transaction
 
 from weather.models import WeatherReading
 from weather.services.exceptions import OpenWeatherResponseError
 from weather.services.openweather import OpenWeatherClient
+
+COORDINATE_QUANTUM = Decimal("0.000001")
 
 
 def collect_weather_reading(city, country_code, client=None):
@@ -26,8 +30,8 @@ def collect_weather_reading(city, country_code, client=None):
         state=location.state,
         country_code=location.country_code,
         provider_location_id=current_weather.provider_location_id,
-        latitude=location.latitude,
-        longitude=location.longitude,
+        latitude=location.latitude.quantize(COORDINATE_QUANTUM),
+        longitude=location.longitude.quantize(COORDINATE_QUANTUM),
         temperature=current_weather.temperature,
         feels_like=current_weather.feels_like,
         humidity=current_weather.humidity,

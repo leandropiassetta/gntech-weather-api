@@ -362,7 +362,6 @@ O banco deve permanecer privado. Apenas a porta HTTP da API deve ser exposta.
 
 ## Limitações deliberadas
 
-- A entrega não inclui uma URL pública hospedada.
 - A API criada não exige autenticação, conforme o escopo do desafio. Antes de
   exposição pública, seria necessário adicionar autenticação e throttling para
   proteger a cota do OpenWeather.
